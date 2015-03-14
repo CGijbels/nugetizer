@@ -6,7 +6,7 @@ function MigrateToNuget {
         [string] $PackageNameSuffix = '',
         [string] $PackageVersion = '1.0.0',
 		[string] $NetFramework = 'net40',
-		[string] $RelativePathToPackages = '..\Packages'
+		[string] $RelativePathToPackages = '..\packages'
     )
 
     [xml] $Xml = Get-Content "$CsProjFile"
