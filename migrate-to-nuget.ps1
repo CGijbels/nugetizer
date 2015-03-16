@@ -14,26 +14,31 @@ function MigrateToNuget {
     $NsMgr = New-Object System.Xml.XmlNamespaceManager($Xml.NameTable)
     $NsMgr.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003")
 
-    $Xml.SelectNodes("//x:HintPath", $NsMgr) | 
+    $Replacements = $Xml.SelectNodes("//x:HintPath", $NsMgr) | 
         Where-Object { $_.InnerText -like "$RelativePathToReferences*" } |% {			
 			$BaseName = $_.InnerText.Substring("$RelativePathToReferences\".Length, $_.InnerText.IndexOf("\", "$RelativePathToReferences\".Length) - "$RelativePathToReferences\".Length)
 			$PackageName = "$PackageNamePrefix$BaseName$PackageNameSuffix"
 			
 			$From = $_.InnerText
-			$To = $_.InnerText.Replace("$RelativePathToReferences\$BaseName","$RelativePathToPackages\$PackageName.$PackageVersion\lib\$NetFramework")
+			$To = $_.InnerText.Replace("$RelativePathToReferences\$BaseName","$RelativePathToPackages\$PackageName\lib")
 			$_.InnerText = $To
-			
-			if($WhatIf) {
-				Write-Host "Replace from: $From to: $To " #in $CsProjFile"
-			}
+			New-Object PSObject -Property @{From=$From;To=$To;CsProjFile=$CsProjFile}
         }
-	
-	if(!($WhatIf)) {
-		$Xml.Save("$CsProjFile")  
-	}	
+		
+	if($Replacements.Length -ne 0) {
+		if($WhatIf) {
+			Write-Host "Would replace the following hintpaths in $CsProjFile"
+			$Replacements |% { 
+				$From = $_.From
+				$To = $_.To
+				Write-Host "From: $From To: $To" }
+		} else {
+			$Xml.Save("$CsProjFile") 
+		}
+	}
 }
 
-#$BasePath = 'c:\src\trunk'
-#Get-ChildItem $BasePath -Name '*.csproj' -Recurse |% { "$BasePath\$_" } |% { 
-#	MigrateToNuget -CsProjFile "$_" -WhatIf -PackageNamePrefix '' -PackageNameSuffix '' -PackageVersion '1.0.0' -NetFramework 'net45' #-RelativePathToReferences '..\..\References' -$RelativePathToPackages '..\packages'
-#}
+$BasePath = 'c:\src\trunk\'
+Get-ChildItem $BasePath -Name '*.csproj' -Recurse |% { "$BasePath\$_" } |% { 
+	MigrateToNuget -WhatIf -CsProjFile "$_"
+}
