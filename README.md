@@ -2,7 +2,7 @@
 
 The last couple of years I have had the pleasure of helping a couple of organisations moving to NuGet.
 
-In my experience the following plan has prooven itself to be succesful:
+In my experience the following plan has proven itself to be successful:
 
 1. Build packages for each folder in libraries\references (Use build-package.ps1)
 2. Update all csproj files to replace all hintpaths pointing to ..\\..\references with ..\packages (Use migrate-to-nuget.ps1)
